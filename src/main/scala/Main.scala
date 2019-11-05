@@ -1,4 +1,4 @@
-import Game.{Attack, CreatureData, Point}
+import Game.{Attack, BasicSword, CreatureData, GreatSword, Point}
 import Messages.{Creature, Message, PerformedAction}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.{SparkConf, SparkContext}
@@ -15,7 +15,10 @@ object Main extends App {
   def createCreature(sparkContext: SparkContext, n: Int): RDD[(Int, Message)] = {
     sparkContext.makeRDD[Int](for (i <- 0 until n) yield i)
       .map(i => {
-        (i, new Creature(i, rand.nextInt(2), new CreatureData(new Point(rand.nextGaussian(), rand.nextGaussian(), rand.nextGaussian()), 10), Array(new Attack)))
+        if(i != 0)
+        (i, new Creature(i, rand.nextInt(2), new CreatureData(new Point(rand.nextGaussian(), rand.nextGaussian(), 0), 10, 3), Array(new BasicSword)))
+        else
+          (0, new Creature(0, 2, new CreatureData(new Point(0, 0, 0), 200, 40), Array(new GreatSword)))
       })
   }
 
@@ -54,10 +57,10 @@ object Main extends App {
       println("-------")
 
       val creaturesAndActions = creatures.flatMap { case (id: Int, c: Creature) =>
-        var res = ArrayBuffer[Array[(Creature, (Double, Creature, Int))]]()
+        var res = ArrayBuffer[Array[(Creature, (Double, Creature, Creature => Creature))]]()
 
         for (action <- c.actions) {
-          val newMessages = action.applyOn(c, creaturesCopy.map { case (id: Int, c2: Creature) => c2 })
+          val newMessages = action.prepare(c, creaturesCopy.map { case (id: Int, c2: Creature) => c2 })
           if (newMessages.length > 0)
             res += newMessages
         }
@@ -65,7 +68,7 @@ object Main extends App {
         val chosenActions = res.sortBy(arr => {
           arr.minBy { case (cr, (p, o, a)) => p }._2._1
         }).take(1).flatMap(arr => {
-          arr.map { case (cr, (p, o, a)) => (o.id, new PerformedAction(o.id, o, a).asInstanceOf[Message]) }
+          arr.map { case (cr, (p, o, a)) => (o.id, new PerformedAction(o.id, o, Array(a)).asInstanceOf[Message]) }
         })
 
         Array((id, c)) ++ chosenActions
@@ -74,15 +77,24 @@ object Main extends App {
       }
 
       creatures = creaturesAndActions.reduceByKey((msg1, msg2) => {
-        (msg1, msg2) match {
+        val res = (msg1, msg2) match {
           case (c: Creature, ac: PerformedAction) =>
-            new Creature(c.id, c.team, new CreatureData(c.data.position, c.data.hp - ac.damage), c.actions)
+            var cr = c
+            for(apply <- ac.actionApply)
+              cr = apply(cr)
+            cr
           case (ac: PerformedAction, c: Creature) =>
-            new Creature(c.id, c.team, new CreatureData(c.data.position, c.data.hp - ac.damage), c.actions)
+            var cr = c
+            for(apply <- ac.actionApply)
+              cr = apply(cr)
+            cr
           case (ac1: PerformedAction, ac2: PerformedAction) =>
-            new PerformedAction(ac1.id, ac1.target, ac1.damage + ac2.damage)
+            new PerformedAction(ac1.id, ac1.target, ac1.actionApply ++ ac2.actionApply)
         }
+        res
       })
+
+      val creaturesCopy2 = creatures.collect()
 
       creatures = creatures.filter {
         case (id: Int, c: Creature) => c.data.hp > 0

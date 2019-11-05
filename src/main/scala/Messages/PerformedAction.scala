@@ -1,5 +1,5 @@
 package Messages
 
-class PerformedAction(id: Int, val target: Creature, val damage: Int) extends Message(id) {
+class PerformedAction(id: Int, val target: Creature, val actionApply: Array[Creature => Creature]) extends Message(id) {
 
 }
