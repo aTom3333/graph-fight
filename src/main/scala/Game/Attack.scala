@@ -1,7 +1,7 @@
 package Game
 
 import Messages.Creature
-class Attack(val damageAccuracy: Array[(Int, ValueGiver)], val reach: Double) extends Action(1) {
+class Attack(val damageAccuracy: Array[(Int, ValueGiver)], val reach: Double, factor: Double = 1) extends Action(factor) {
   override def prepare(self: Creature, others: Array[Creature]): Array[(Creature, (Double, Creature, Creature => Creature))] = {
     others
       .filter{c => c.team != self.team}
@@ -9,7 +9,7 @@ class Attack(val damageAccuracy: Array[(Int, ValueGiver)], val reach: Double) ex
       .sortBy(c => Point.distance(self.data.position, c.data.position))
       .take(damageAccuracy.length)
       .map(c => {
-        (self, (Point.distance(self.data.position, c.data.position), c, (crea: Creature) => {
+        (self, (Point.distance(self.data.position, c.data.position) * factor, c, (crea: Creature) => {
           val accuracy = new RandomGiver(20).giveValue()
 
           if(accuracy == 20 || accuracy+damageAccuracy(0)._1 > c.data.defense) {
