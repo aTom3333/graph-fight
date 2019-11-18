@@ -1,9 +1,9 @@
+import Communication.{Json}
 import Game.{Attack, CreatureData, Point, WalkingTowardEnemy, Weapons}
 import Messages.{Creature, Message, PerformedAction}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.{SparkConf, SparkContext}
 
-import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 import scala.util.Random
 
@@ -12,7 +12,8 @@ object Main extends App {
 
   val rand = new Random()
 
-  def createCreature(sparkContext: SparkContext, n: Int): RDD[(Int, Message)] = {
+
+  def createCreature(sparkContext: SparkContext, n: Int): RDD[(Int, Creature)] = {
     sparkContext.makeRDD[Int](for (i <- 0 until n) yield i)
       .map(i => {
         if(i != 0)
@@ -33,7 +34,6 @@ object Main extends App {
   //    Graph.apply(vertices, edges)
   //  }
 
-
   val conf: SparkConf = new SparkConf()
     .setAppName("Cool")
     .setMaster("local[*]")
@@ -41,41 +41,49 @@ object Main extends App {
   val sparkContext: SparkContext = new SparkContext(conf)
   sparkContext.setLogLevel("ERROR")
 
-  var creatures: RDD[(Int, Message)] = createCreature(sparkContext, 150)
-
-  var break = false
-
-  while(!break) {
-    creatures = creatures.cache.localCheckpoint
-
-    val aliveTeams = creatures.map{ case (id, c:Creature) => (c.team,1) }.reduceByKey((a,b) => 1).count()
-    if(aliveTeams > 1) {
+  var creatures: RDD[(Int, Creature)] = createCreature(sparkContext, 150)
 
 
-      creatures.foreach { case (id, c: Creature) => printf("Créature %d de la team %d avec %d pv en (%f, %f, %f)\n", c.id, c.team, c.data.hp, c.data.position.x, c.data.position.y, c.data.position.z) }
-      println("-------")
+  fight(creatures)
 
-      tick()
 
+  private def fight(creaturesParam: RDD[(Int, Creature)]): Unit = {
+    var creatures: RDD[(Int, Message)] = creaturesParam.map{ case (id, c) => (id, c.asInstanceOf[Message])}
+    var break = false
+    while (!break) {
+      creatures = creatures.cache.localCheckpoint
+      val json = Json.serialize(creatures.map{ case (id, c) => c})
+      println(json)
+
+      val aliveTeams = creatures.map { case (id, c: Creature) => (c.team, 1) }.reduceByKey((a, b) => 1).count()
+      if (aliveTeams > 1) {
+
+
+        creatures.foreach { case (id, c: Creature) => printf("Créature %d de la team %d avec %d pv en (%f, %f, %f)\n", c.id, c.team, c.data.hp, c.data.position.x, c.data.position.y, c.data.position.z) }
+        println("-------")
+
+        creatures = tick(creatures)
+
+      } else {
+        break = true
+      }
+    }
+
+
+    val creaturesCopy = creatures.collect()
+
+    creaturesCopy.foreach { case (id, c: Creature) => printf("Créature %d de la team %d avec %d pv en (%f, %f, %f)\n", c.id, c.team, c.data.hp, c.data.position.x, c.data.position.y, c.data.position.z) }
+    println("-------")
+
+    if (creatures.count() > 0) {
+      printf("La team %d a gagné\n", creatures.take(1)(0)._2 match { case c: Creature => c.team })
     } else {
-      break = true
+      println("Personne n'a gagné")
     }
   }
 
 
-  val creaturesCopy = creatures.collect()
-
-  creaturesCopy.foreach { case (id, c: Creature) => printf("Créature %d de la team %d avec %d pv en (%f, %f, %f)\n", c.id, c.team, c.data.hp, c.data.position.x, c.data.position.y, c.data.position.z) }
-  println("-------")
-
-  if(creatures.count() > 0) {
-    printf("La team %d a gagné\n", creatures.take(1)(0)._2 match { case c:Creature => c.team } )
-  } else {
-    println("Personne n'a gagné")
-  }
-
-
-  private def tick(): Unit = {
+  private def tick(creatures: RDD[(Int, Message)]): RDD[(Int, Message)] = {
     val creaturesCopy = creatures.collect()
 
     // Choose action for every creature
@@ -102,7 +110,7 @@ object Main extends App {
     }
 
     // Apply action effects
-    creatures = creaturesAndActions.reduceByKey((msg1, msg2) => {
+    val returnCreatures = creaturesAndActions.reduceByKey((msg1, msg2) => {
       val res = (msg1, msg2) match {
         case (c: Creature, ac: PerformedAction) =>
           var cr = c
@@ -121,7 +129,7 @@ object Main extends App {
     })
 
     // Filter out dead creatures
-    creatures = creatures.filter {
+    returnCreatures.filter {
       case (id: Int, c: Creature) => c.data.hp > 0
       case _ => false
     }
