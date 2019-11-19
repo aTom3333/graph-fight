@@ -2,7 +2,7 @@ import java.io.DataOutputStream
 import java.net.{ServerSocket, Socket}
 
 import Communication.Json
-import Game.{Attack, CreatureData, Point, WalkingTowardEnemy, Weapons}
+import Game.{Attack, CreatureData, Creatures, FlyingAway, FlyingTowardEnemy, Point, WalkingTowardEnemy, Weapons}
 import Messages.{Creature, Message, PerformedAction}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.{SparkConf, SparkContext}
@@ -20,9 +20,9 @@ object Main extends App {
     sparkContext.makeRDD[Int](for (i <- 0 until n) yield i)
       .map(i => {
         if(i != 0)
-        (i, new Creature(i, "Orc", rand.nextInt(1), new CreatureData(new Point(rand.nextGaussian()*20, rand.nextGaussian()*20, 0), 10, 3), Array(Weapons.BasicSword(), new WalkingTowardEnemy(2))))
+        (i, Creatures.OrcWorgRider(i, 0, new Point(rand.nextGaussian()*20, rand.nextGaussian()*20, 0)))
         else
-          (0, new Creature(0,  "Solar",2, new CreatureData(new Point(0, 0, 0), 200, 40), Array(Weapons.GreatSword(), new WalkingTowardEnemy(3), Weapons.CompositeLongbow())))
+          (0, Creatures.Solar(0, 2, new Point(0, 0, 0)))
       })
   }
 
@@ -62,10 +62,10 @@ object Main extends App {
   private def fight(creaturesParam: RDD[(Int, Creature)], socket: Socket): Unit = {
     var creatures: RDD[(Int, Message)] = creaturesParam.map{ case (id, c) => (id, c.asInstanceOf[Message])}
     var break = false
+    val output = new DataOutputStream(socket.getOutputStream)
     while (!break) {
       creatures = creatures.cache.localCheckpoint
       val json = Json.serialize(creatures.map{ case (id, c) => c})
-      val output = new DataOutputStream(socket.getOutputStream)
       output.writeChars(json)
       output.writeChar('\n')
       println(json)
@@ -95,6 +95,9 @@ object Main extends App {
     } else {
       println("Personne n'a gagné")
     }
+
+    output.close()
+    socket.close()
   }
 
 

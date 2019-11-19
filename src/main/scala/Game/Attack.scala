@@ -1,25 +1,33 @@
 package Game
 
 import Messages.Creature
-class Attack(val damageAccuracy: Array[(Int, ValueGiver)], val reach: Double, factor: Double = 1) extends Action(factor) {
+
+class Attack(val damageAccuracy: Array[(Int, ValueGiver)], val reach: Double, val critThresh: Int = 20, val critMult: Double = 2, val singleHand: Boolean = true, val ranged: Boolean = false, factor: Double = 1) extends Action(factor) {
   override def prepare(self: Creature, others: Array[Creature]): Array[(Creature, (Double, Creature, Creature => Creature))] = {
     others
       .filter{c => c.team != self.team}
       .filter(c => Point.distance(self.data.position, c.data.position) <= reach)
       .sortBy(c => Point.distance(self.data.position, c.data.position))
       .take(damageAccuracy.length)
-      .map(c => {
+      .zipWithIndex
+      .map{ case(c, idx) => {
         (self, (Point.distance(self.data.position, c.data.position) * factor, c, (crea: Creature) => {
           val accuracy = new RandomGiver(20).giveValue()
+          val accuracyAdd = damageAccuracy(idx)._1 + modifier(if(ranged) self.data.dexterity else self.data.strength) // TODO ? Base Attack
 
-          if(accuracy == 20 || accuracy+damageAccuracy(0)._1 > c.data.defense) {
-            val damage = damageAccuracy(0)._2.giveValue()
-            new Creature(c.id, c.name, c.team, c.data.change(hp = c.data.hp-damage), c.actions)
+          val crit = accuracy >= critThresh
+          if(crit || accuracy+accuracyAdd >= c.data.defense) {
+            val damage = damageAccuracy(idx)._2.giveValue() * (if(crit) critMult else 1) * (if(singleHand) 1 else 1.5)
+            new Creature(c.id, c.name, c.team, c.data.change(hp = c.data.hp-damage.toInt), c.actions)
           }
           else {
             crea
           }
         }))
-      })
+      }}
+  }
+
+  private def modifier(value: Int): Int = {
+    Math.max((value - 10) / 2, 0)
   }
 }
