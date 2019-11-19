@@ -14,7 +14,7 @@ class Attack(val damageAccuracy: Array[(Int, ValueGiver)], val reach: Double, fa
 
           if(accuracy == 20 || accuracy+damageAccuracy(0)._1 > c.data.defense) {
             val damage = damageAccuracy(0)._2.giveValue()
-            new Creature(c.id, c.team, c.data.change(hp = c.data.hp-damage), c.actions)
+            new Creature(c.id, c.name, c.team, c.data.change(hp = c.data.hp-damage), c.actions)
           }
           else {
             crea

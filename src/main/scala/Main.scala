@@ -20,9 +20,9 @@ object Main extends App {
     sparkContext.makeRDD[Int](for (i <- 0 until n) yield i)
       .map(i => {
         if(i != 0)
-        (i, new Creature(i, rand.nextInt(1), new CreatureData(new Point(rand.nextGaussian()*20, rand.nextGaussian()*20, 0), 10, 3), Array(Weapons.BasicSword(), new WalkingTowardEnemy(2))))
+        (i, new Creature(i, "Orc", rand.nextInt(1), new CreatureData(new Point(rand.nextGaussian()*20, rand.nextGaussian()*20, 0), 10, 3), Array(Weapons.BasicSword(), new WalkingTowardEnemy(2))))
         else
-          (0, new Creature(0, 2, new CreatureData(new Point(0, 0, 0), 200, 40), Array(Weapons.GreatSword(), new WalkingTowardEnemy(3), Weapons.CompositeLongbow())))
+          (0, new Creature(0,  "Solar",2, new CreatureData(new Point(0, 0, 0), 200, 40), Array(Weapons.GreatSword(), new WalkingTowardEnemy(3), Weapons.CompositeLongbow())))
       })
   }
 
