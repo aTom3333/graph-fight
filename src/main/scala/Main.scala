@@ -1,4 +1,7 @@
-import Communication.{Json}
+import java.io.DataOutputStream
+import java.net.{ServerSocket, Socket}
+
+import Communication.Json
 import Game.{Attack, CreatureData, Point, WalkingTowardEnemy, Weapons}
 import Messages.{Creature, Message, PerformedAction}
 import org.apache.spark.rdd.RDD
@@ -41,18 +44,30 @@ object Main extends App {
   val sparkContext: SparkContext = new SparkContext(conf)
   sparkContext.setLogLevel("ERROR")
 
-  var creatures: RDD[(Int, Creature)] = createCreature(sparkContext, 150)
+  val server = new ServerSocket(1234)
+
+  while(true) {
+    acceptConnection()
+  }
 
 
-  fight(creatures)
+  private def acceptConnection(): Unit = {
+    val socket = server.accept()
+    val creatures: RDD[(Int, Creature)] = createCreature(sparkContext, 150)
+
+    fight(creatures, socket)
+  }
 
 
-  private def fight(creaturesParam: RDD[(Int, Creature)]): Unit = {
+  private def fight(creaturesParam: RDD[(Int, Creature)], socket: Socket): Unit = {
     var creatures: RDD[(Int, Message)] = creaturesParam.map{ case (id, c) => (id, c.asInstanceOf[Message])}
     var break = false
     while (!break) {
       creatures = creatures.cache.localCheckpoint
       val json = Json.serialize(creatures.map{ case (id, c) => c})
+      val output = new DataOutputStream(socket.getOutputStream)
+      output.writeChars(json)
+      output.writeChar('\n')
       println(json)
 
       val aliveTeams = creatures.map { case (id, c: Creature) => (c.team, 1) }.reduceByKey((a, b) => 1).count()
