@@ -1,4 +1,4 @@
-import java.io.DataOutputStream
+import java.io.{BufferedReader, DataOutputStream, InputStreamReader}
 import java.net.{ServerSocket, Socket}
 
 import Communication.Json
@@ -63,12 +63,14 @@ object Main extends App {
     var creatures: RDD[(Int, Message)] = creaturesParam.map{ case (id, c) => (id, c.asInstanceOf[Message])}
     var break = false
     val output = new DataOutputStream(socket.getOutputStream)
+    val input = new BufferedReader(new InputStreamReader(socket.getInputStream))
     while (!break) {
       creatures = creatures.cache.localCheckpoint
       val json = Json.serialize(creatures.map{ case (id, c) => c})
       output.writeChars(json)
       output.writeChar('\n')
       println(json)
+      input.readLine() // Wait for Unity to request continuation by sending a line
 
       val aliveTeams = creatures.map { case (id, c: Creature) => (c.team, 1) }.reduceByKey((a, b) => 1).count()
       if (aliveTeams > 1) {
