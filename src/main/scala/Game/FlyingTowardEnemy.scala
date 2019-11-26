@@ -17,7 +17,7 @@ class FlyingTowardEnemy(val maxDistance: Double, factor: Double = 10) extends Ac
     } else
       new Point(self.data.position.x + dx * 0.8, self.data.position.y + dy * 0.8, Math.max(self.data.position.z + dz * 0.8, 0))
     Array((self, (distance * factor, self, (cr: Creature) => {
-      new Creature(cr.id, cr.name, cr.team, cr.data.change(position = destination), cr.actions)
+      new Creature(cr.id, cr.name, cr.team, cr.data.change(position = destination), cr.activeActions, cr.passiveActions)
     })))
   }
 }

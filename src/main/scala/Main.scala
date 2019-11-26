@@ -1,8 +1,8 @@
 import java.io.{BufferedReader, DataOutputStream, InputStreamReader}
 import java.net.{ServerSocket, Socket}
 
-import Communication.Json
-import Game.{Attack, CreatureData, Creatures, FlyingAway, FlyingTowardEnemy, Point, WalkingTowardEnemy, Weapons}
+import Communication.{Json, Serializer}
+import Game.{Action, Attack, CreatureData, Creatures, FlyingAway, FlyingTowardEnemy, Point, WalkingTowardEnemy, Weapons}
 import Messages.{Creature, Message, PerformedAction}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.{SparkConf, SparkContext}
@@ -53,31 +53,27 @@ object Main extends App {
 
   private def acceptConnection(): Unit = {
     val socket = server.accept()
-    val creatures: RDD[(Int, Creature)] = createCreature(sparkContext, 150)
+    val creatures: RDD[(Int, Creature)] = createCreature(sparkContext, 50)
 
-    fight(creatures, socket)
+    new Thread(() => fight(creatures, socket)).start()
   }
 
 
   private def fight(creaturesParam: RDD[(Int, Creature)], socket: Socket): Unit = {
     var creatures: RDD[(Int, Message)] = creaturesParam.map{ case (id, c) => (id, c.asInstanceOf[Message])}
     var break = false
-    val output = new DataOutputStream(socket.getOutputStream)
+    val output = new Serializer(socket.getOutputStream)
     val input = new BufferedReader(new InputStreamReader(socket.getInputStream))
     while (!break) {
       creatures = creatures.cache.localCheckpoint
       val json = Json.serialize(creatures.map{ case (id, c) => c})
-      output.writeChars(json)
-      output.writeChar('\n')
+      output.write(json)
+      output.write('\n')
       println(json)
       input.readLine() // Wait for Unity to request continuation by sending a line
 
       val aliveTeams = creatures.map { case (id, c: Creature) => (c.team, 1) }.reduceByKey((a, b) => 1).count()
       if (aliveTeams > 1) {
-
-
-        creatures.foreach { case (id, c: Creature) => printf("Créature %d de la team %d avec %d pv en (%f, %f, %f)\n", c.id, c.team, c.data.hp, c.data.position.x, c.data.position.y, c.data.position.z) }
-        println("-------")
 
         creatures = tick(creatures)
 
@@ -99,20 +95,22 @@ object Main extends App {
     }
 
     output.close()
+    input.close()
     socket.close()
   }
 
 
   private def tick(creatures: RDD[(Int, Message)]): RDD[(Int, Message)] = {
-    val creaturesCopy = creatures.collect()
+    val creaturesCopy = creatures.collect().map { case (id: Int, c2: Creature) => c2 }
+
 
     // Choose action for every creature
     val creaturesAndActions = creatures.flatMap { case (id: Int, c: Creature) =>
       var res = ArrayBuffer[Array[(Creature, (Double, Creature, Creature => Creature))]]()
 
       // list all possible action
-      for (action <- c.actions) {
-        val newMessages = action.prepare(c, creaturesCopy.map { case (id: Int, c2: Creature) => c2 })
+      for (action <- c.activeActions) {
+        val newMessages = action.prepare(c, creaturesCopy)
         if (newMessages.length > 0)
           res += newMessages
       }
@@ -124,10 +122,17 @@ object Main extends App {
         arr.map { case (cr, (p, o, a)) => (o.id, new PerformedAction(o.id, o, Array(a)).asInstanceOf[Message]) }
       })
 
-      Array((id, c)) ++ chosenActions
+      // Add the passive action that always get used
+      val passiveActions = c.passiveActions.flatMap((ac: Action) => {
+        ac.prepare(c, creaturesCopy)
+          .map{ case (cr, (p, o, a)) => (o.id, new PerformedAction(o.id, o, Array(a)).asInstanceOf[Message]) }
+      })
+
+      Array((id, c)) ++ chosenActions ++ passiveActions
 
     case _ => Array[(Int, Message)]()
     }
+
 
     // Apply action effects
     val returnCreatures = creaturesAndActions.reduceByKey((msg1, msg2) => {
@@ -152,6 +157,9 @@ object Main extends App {
     returnCreatures.filter {
       case (id: Int, c: Creature) => c.data.hp > 0
       case _ => false
+    }.map{ // Ensure hp <= maxHP
+      case (id: Int, c: Creature) => (id, c.withData(c.data.change(hp = Math.min(c.data.hp, c.data.maxHP))))
+      case t => t
     }
   }
 

@@ -18,7 +18,7 @@ class Attack(val damageAccuracy: Array[(Int, ValueGiver)], val reach: Double, va
           val crit = accuracy >= critThresh
           if(crit || accuracy+accuracyAdd >= c.data.defense) {
             val damage = damageAccuracy(idx)._2.giveValue() * (if(crit) critMult else 1) * (if(singleHand) 1 else 1.5)
-            new Creature(c.id, c.name, c.team, c.data.change(hp = c.data.hp-damage.toInt), c.actions)
+            new Creature(crea.id, crea.name, crea.team, crea.data.change(hp = crea.data.hp-damage.toInt), crea.activeActions, crea.passiveActions)
           }
           else {
             crea
