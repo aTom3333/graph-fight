@@ -1,7 +1,7 @@
 import java.io.{BufferedReader, DataOutputStream, InputStreamReader}
 import java.net.{ServerSocket, Socket}
 
-import Communication.{Json, Serializer}
+import Communication.{Deserializer, Json, Serializer}
 import Game.{Action, Attack, CreatureData, Creatures, FlyingAway, FlyingTowardEnemy, Point, WalkingTowardEnemy, Weapons}
 import Messages.{Creature, Message, PerformedAction}
 import org.apache.spark.rdd.RDD
@@ -63,22 +63,24 @@ object Main extends App {
     var creatures: RDD[(Int, Message)] = creaturesParam.map{ case (id, c) => (id, c.asInstanceOf[Message])}
     var break = false
     val output = new Serializer(socket.getOutputStream)
-    val input = new BufferedReader(new InputStreamReader(socket.getInputStream))
+    val input = new Deserializer(socket.getInputStream)
     while (!break) {
       creatures = creatures.cache.localCheckpoint
       val json = Json.serialize(creatures.map{ case (id, c) => c})
       output.write(json)
-      output.write('\n')
+      //output.write('\n')
       println(json)
-      input.readLine() // Wait for Unity to request continuation by sending a line
+      val message = input.read() // Wait for Unity to request continuation by sending a message
 
-      val aliveTeams = creatures.map { case (id, c: Creature) => (c.team, 1) }.reduceByKey((a, b) => 1).count()
-      if (aliveTeams > 1) {
+      if(message == "OK!") {
+        val aliveTeams = creatures.map { case (id, c: Creature) => (c.team, 1) }.reduceByKey((a, b) => 1).count()
+        if (aliveTeams > 1) {
 
-        creatures = tick(creatures)
+          creatures = tick(creatures)
 
-      } else {
-        break = true
+        } else {
+          break = true
+        }
       }
     }
 
@@ -89,8 +91,10 @@ object Main extends App {
     println("-------")
 
     if (creatures.count() > 0) {
+      output.write(String.format("win-%d", (creatures.take(1)(0)._2 match { case c: Creature => c.team }).asInstanceOf[Object]))
       printf("La team %d a gagné\n", creatures.take(1)(0)._2 match { case c: Creature => c.team })
     } else {
+      output.write("win-null")
       println("Personne n'a gagné")
     }
 
