@@ -17,12 +17,8 @@ class FlyingAway(val maxDistance: Double, val threshold: Double, factor: Double 
       val dx = averagePos.x - self.data.position.x
       val dy = averagePos.y - self.data.position.y
       val dz = averagePos.z - self.data.position.z
-      val destination = if (distance > maxDistance) {
-        val factor = Math.min(maxDistance / distance, 1)
-        new Point(self.data.position.x + dx * factor, self.data.position.y + dy * factor, Math.max(self.data.position.z + dz * factor, 0))
-      } else
-        new Point(self.data.position.x + dx * 1, self.data.position.y + dy * 1, Math.max(self.data.position.z + dz * 1, 0))
-
+      val destination =
+        new Point(self.data.position.x - dx / distance * maxDistance, self.data.position.y - dy / distance * maxDistance, Math.max(self.data.position.z - dz / distance * maxDistance, 0))
       Array((self, (distance * factor / count * self.data.hp / self.data.maxHP, self, (cr: Creature) => {
         new Creature(cr.id, cr.name, cr.team, cr.data.change(position = destination), cr.activeActions, cr.passiveActions)
       })))

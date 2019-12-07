@@ -15,9 +15,13 @@ object Creatures {
       Weapons.GreatSword(),
       Weapons.CompositeLongbow(),
       new FlyingTowardEnemy(45),
-      new FlyingAway(45, 10, 1)
+      new FlyingAway(45, 10, 100)
     ), Array(
-      new Regeneration(15)
+      new Regeneration(15),
+      new ChooseAction(Array(
+        new FlyingTowardEnemy(45),
+        new FlyingAway(45, 10)
+      ))
     ))
   }
 
@@ -33,6 +37,8 @@ object Creatures {
       Weapons.BattleAxe(),
       Weapons.ShortBow(),
       new WalkingTowardEnemy(6)
-    ), Array())
+    ), Array(
+      new WalkingTowardEnemy(6)
+    ))
   }
 }
