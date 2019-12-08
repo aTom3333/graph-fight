@@ -7,13 +7,13 @@ object Weapons {
       (30, Dice.dice(6, 3, 18)), // +30 / 3d6+18
       (25, Dice.dice(6, 3, 18)), // +25 / 3d6+18
       (20, Dice.dice(6, 3, 18)), // +20 / 3d6+18
-    ), 1, 19)
+    ), 2, 19)
   }
 
   def BasicSword(): Attack = {
     new Attack(Array(
       (10, Dice.dice(6, 1, 2))
-    ), 0.8, 20, 3)
+    ), 1.6, 20, 3)
   }
 
   def CompositeLongbow(): Attack = {
@@ -28,7 +28,7 @@ object Weapons {
   def BattleAxe(): Attack = {
     new Attack(Array(
       (6, Dice.dice(8, 1, 2))
-    ), 0.8, 20, 3)
+    ), 1.6, 20, 3)
   }
 
   def ShortBow(): Attack = {

@@ -130,7 +130,8 @@ object Main extends App {
       }
 
       // Choose the one with the highest priority (lowest numerical value)
-      val chosenActions = res.sortBy(arr => {
+      val chosenActions = res.filter(arr => arr.nonEmpty)
+        .sortBy(arr => {
         arr.minBy { case (cr, (p, o, a)) => p }._2._1
       }).take(1).flatMap(arr => {
         arr.map { case (cr, (p, o, a)) => (o.id, new PerformedAction(o.id, o, Array(a)).asInstanceOf[Message]) }

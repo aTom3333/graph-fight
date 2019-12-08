@@ -2,6 +2,7 @@ package Game
 
 class Point(var x: Double, var y: Double, var z: Double) extends Serializable {
 
+  override def toString = s"Point(x=$x, y=$y, z=$z)"
 }
 
 object Point {

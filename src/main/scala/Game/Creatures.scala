@@ -14,13 +14,13 @@ object Creatures {
     ), Array(
       Weapons.GreatSword(),
       Weapons.CompositeLongbow(),
-      new FlyingTowardEnemy(45, 0.5),
-      new FlyingAway(45, 10, 100)
+      new FlyingTowardEnemy(45, 1.8),
+      new OptionalAction(new FlyingAway(45, 5), 10)
     ), Array(
       new Regeneration(15),
       new ChooseAction(Array(
-        new FlyingTowardEnemy(45, 0.5),
-        new FlyingAway(45, 10)
+        new FlyingTowardEnemy(45, 1.8),
+        new OptionalAction(new FlyingAway(45, 5), 10)
       ))
     ))
   }
@@ -48,9 +48,9 @@ object Creatures {
     ), Array(
       Weapons.BattleAxe(),
       Weapons.ShortBow(),
-      new WalkingTowardEnemy(6, 0.5)
+      new WalkingTowardEnemy(6, 1.4)
     ), Array(
-      new WalkingTowardEnemy(6, 0.5)
+      new WalkingTowardEnemy(6, 1.4)
     ))
   }
 
@@ -67,15 +67,15 @@ object Creatures {
         (19, Dice.dice(8, 1, 10)),
         (14, Dice.dice(8, 1, 10)),
         (9, Dice.dice(8, 1, 10)),
-      ), 0.8, 19, 3, false),
+      ), 1.6, 19, 3, false),
       new Attack(Array( // Composite LongBow
         (16, Dice.dice(8, 1, 6)),
         (11, Dice.dice(8, 1, 6)),
         (6, Dice.dice(8, 1, 6)),
       ), 33, 20, 3, true, true, 0.5),
-      new WalkingTowardEnemy(12, 0.5)
+      new WalkingTowardEnemy(12, 1.4)
     ), Array(
-      new WalkingTowardEnemy(12, 0.5)
+      new WalkingTowardEnemy(12, 1.4)
     ))
   }
 
@@ -92,13 +92,13 @@ object Creatures {
         (20, Dice.dice(8, 1, 10)),
         (15, Dice.dice(8, 1, 10)),
         (10, Dice.dice(8, 1, 10))
-      ), 1, 19, 2, true, false),
+      ), 2, 19, 2, true, false),
       new Attack(Array( // throwing axe
         (19, Dice.dice(6, 1, 5))
       ), 17, 20, 2, true, true, 0.5),
-      new WalkingTowardEnemy(9, 0.5)
+      new WalkingTowardEnemy(9, 1.8)
     ), Array(
-      new WalkingTowardEnemy(9, 0.5)
+      new WalkingTowardEnemy(9, 1.8)
     ))
   }
 }
