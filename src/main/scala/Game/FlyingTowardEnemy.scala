@@ -18,7 +18,7 @@ class FlyingTowardEnemy(val maxDistance: Double, val minDistance: Double, factor
           new Point(cr.data.position.x + dx * factor, cr.data.position.y + dy * factor, Math.max(cr.data.position.z + dz * factor, 0))
         } else
           new Point(cr.data.position.x + dx * 0.8, cr.data.position.y + dy * 0.8, Math.max(cr.data.position.z + dz * 0.8, 0))
-        new Creature(cr.id, cr.name, cr.team, cr.data.change(position = destination), cr.activeActions, cr.passiveActions)
+        cr.withData(cr.data.change(position = destination))
       })))
     } else {
       Array()

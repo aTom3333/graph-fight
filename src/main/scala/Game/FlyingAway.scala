@@ -15,19 +15,20 @@ class FlyingAway(val maxDistance: Double, val threshold: Double, factor: Double 
         .reduce((p1, p2) => Point.add(p1, p2)), count)
 
       val distance = Point.distance(self.data.position, averagePos)
-      val dx = averagePos.x - self.data.position.x
-      val dy = averagePos.y - self.data.position.y
-      val dz = averagePos.z - self.data.position.z
-      val destination =
-        new Point(self.data.position.x - dx / distance * movingDistance, self.data.position.y - dy / distance * movingDistance, Math.max(self.data.position.z - dz / distance * movingDistance, 0))
       Array((self, (distance * factor / count * self.data.hp / self.data.maxHP, self, (cr: Creature) => {
-        new Creature(cr.id, cr.name, cr.team, cr.data.change(position = destination), cr.activeActions, cr.passiveActions)
+        val distance = Point.distance(cr.data.position, averagePos)
+        val dx = averagePos.x - cr.data.position.x
+        val dy = averagePos.y - cr.data.position.y
+        val dz = averagePos.z - cr.data.position.z
+        val destination =
+          new Point(cr.data.position.x - dx / distance * movingDistance, cr.data.position.y - dy / distance * movingDistance, Math.max(cr.data.position.z - dz / distance * movingDistance, 0))
+        cr.withData(cr.data.change(position = destination))
       })))
     } else
       Array[(Creature, (Double, Creature, Creature => Creature))]()
 
     val goingUpAction = Array((self, (factor / count * self.data.hp / self.data.maxHP * 10, self, (cr: Creature) => {
-      new Creature(cr.id, cr.name, cr.team, cr.data.change(position = new Point(cr.data.position.x, cr.data.position.y, cr.data.position.z + movingDistance)), cr.activeActions, cr.passiveActions)
+      cr.withData(cr.data.change(position = new Point(cr.data.position.x, cr.data.position.y, cr.data.position.z + movingDistance)))
     })))
 
     goingAwayAction ++ goingUpAction

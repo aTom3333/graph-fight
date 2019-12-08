@@ -3,7 +3,7 @@ package Game
 import Messages.Creature
 
 object Creatures {
-  def Solar(id: Int, team: Int, position: Point): Creature = {
+  def Solar(id: Int, team: Int, position: Point, isBoss: Boolean = false): Creature = {
     new Creature(id, "Solar", team, new CreatureData(
       hp = 363,
       maxHP = 363,
@@ -22,10 +22,11 @@ object Creatures {
         new FlyingTowardEnemy(45, 1.8),
         new OptionalAction(new FlyingAway(45, 5), 10)
       ))
-    ))
+    ),
+      isBoss)
   }
 
-  def Pito(id: Int, team: Int, position: Point): Creature = {
+  def Pito(id: Int, team: Int, position: Point, isBoss: Boolean = false): Creature = {
     new Creature(id, "Pito", team, new CreatureData(
       hp = 34,
       maxHP = 34,
@@ -34,10 +35,11 @@ object Creatures {
       dexterity = 17,
       defense = 14
     ), Array(), // No actions because Pito is sleeping
-      Array())
+      Array(),
+      isBoss)
   }
 
-  def OrcWorgRider(id: Int, team: Int, position: Point): Creature = {
+  def OrcWorgRider(id: Int, team: Int, position: Point, isBoss: Boolean = false): Creature = {
     new Creature(id, "Orc Worg Rider", team, new CreatureData(
       hp = 13,
       maxHP = 13,
@@ -51,10 +53,11 @@ object Creatures {
       new WalkingTowardEnemy(6, 1.4)
     ), Array(
       new WalkingTowardEnemy(6, 1.4)
-    ))
+    ),
+      isBoss)
   }
 
-  def OrcBarbarian(id: Int, team: Int, position: Point): Creature = {
+  def OrcBarbarian(id: Int, team: Int, position: Point, isBoss: Boolean = false): Creature = {
     new Creature(id, "Orc Barbarian", team, new CreatureData(
       hp = 142,
       maxHP = 142,
@@ -76,10 +79,11 @@ object Creatures {
       new WalkingTowardEnemy(12, 1.4)
     ), Array(
       new WalkingTowardEnemy(12, 1.4)
-    ))
+    ),
+      isBoss)
   }
 
-  def Warlord(id: Int, team: Int, position: Point): Creature = {
+  def Warlord(id: Int, team: Int, position: Point, isBoss: Boolean = false): Creature = {
     new Creature(id, "Warlord", team, new CreatureData(
       hp = 141,
       maxHP = 141,
@@ -99,6 +103,7 @@ object Creatures {
       new WalkingTowardEnemy(9, 1.8)
     ), Array(
       new WalkingTowardEnemy(9, 1.8)
-    ))
+    ),
+      isBoss)
   }
 }

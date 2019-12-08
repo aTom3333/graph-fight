@@ -83,7 +83,7 @@ object Main extends App {
       val message = input.read() // Wait for Unity to request continuation by sending a message
 
       if(message == "OK!") {
-        val aliveTeams = creatures.map { case (id, c: Creature) => (c.team, 1) }.reduceByKey((a, b) => 1).count()
+        val aliveTeams = creatures.filter{ case (id, c: Creature) => c.isBoss}.map { case (id, c: Creature) => (c.team, 1) }.reduceByKey((a, b) => 1).count()
         if (aliveTeams > 1) {
 
           creatures = tick(creatures)
@@ -95,14 +95,14 @@ object Main extends App {
     }
 
 
-    val creaturesCopy = creatures.collect()
+    val remainingBosses = creatures.filter{ case (id, c: Creature) => c.isBoss}.collect()
 
-    creaturesCopy.foreach { case (id, c: Creature) => printf("Créature %d de la team %d avec %d pv en (%f, %f, %f)\n", c.id, c.team, c.data.hp, c.data.position.x, c.data.position.y, c.data.position.z) }
-    println("-------")
+//    creaturesCopy.foreach { case (id, c: Creature) => printf("Créature %d de la team %d avec %d pv en (%f, %f, %f)\n", c.id, c.team, c.data.hp, c.data.position.x, c.data.position.y, c.data.position.z) }
+//    println("-------")
 
     if (creatures.count() > 0) {
-      output.write(String.format("win-%d", (creatures.take(1)(0)._2 match { case c: Creature => c.team }).asInstanceOf[Object]))
-      printf("La team %d a gagné\n", creatures.take(1)(0)._2 match { case c: Creature => c.team })
+      output.write(String.format("win-%d", (remainingBosses(0)._2 match { case c: Creature => c.team }).asInstanceOf[Object]))
+      printf("La team %d a gagné\n", remainingBosses(0)._2 match { case c: Creature => c.team })
     } else {
       output.write("win-null")
       println("Personne n'a gagné")

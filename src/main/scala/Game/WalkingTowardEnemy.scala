@@ -17,7 +17,7 @@ class WalkingTowardEnemy(val maxDistance: Double, val minDistance: Double, facto
           new Point(cr.data.position.x + dx * factor, cr.data.position.y + dy * factor, cr.data.position.z)
         } else
           new Point(cr.data.position.x + dx * 0.8, cr.data.position.y + dy * 0.8, cr.data.position.z)
-        new Creature(cr.id, cr.name, cr.team, cr.data.change(position = destination), cr.activeActions, cr.passiveActions)
+        cr.withData(cr.data.change(position = destination))
       })))
     } else {
       Array()
