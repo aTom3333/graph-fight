@@ -2,7 +2,7 @@ import java.io.{BufferedReader, DataOutputStream, InputStreamReader}
 import java.net.{ServerSocket, Socket}
 
 import Communication.{Deserializer, Json, Serializer}
-import Game.{Action, Attack, CreatureData, Creatures, FlyingAway, FlyingTowardEnemy, Point, WalkingTowardEnemy, Weapons}
+import Game.{Action, Attack, CreatureData, Creatures, Fights, FlyingAway, FlyingTowardEnemy, Point, WalkingTowardEnemy, Weapons}
 import Messages.{Creature, Message, PerformedAction}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.{SparkConf, SparkContext}
@@ -37,6 +37,14 @@ object Main extends App {
   //    Graph.apply(vertices, edges)
   //  }
 
+  println("Quel combat faire ?")
+  println("1) Combat 1")
+  println("2) Combat 2")
+  var fightNo = 0
+  do {
+    fightNo = scala.io.StdIn.readInt()
+  } while(fightNo != 1 && fightNo != 2)
+
   val conf: SparkConf = new SparkConf()
     .setAppName("Cool")
     .setMaster("local[*]")
@@ -53,7 +61,9 @@ object Main extends App {
 
   private def acceptConnection(): Unit = {
     val socket = server.accept()
-    val creatures: RDD[(Int, Creature)] = createCreature(sparkContext, 50)
+    val creatures: RDD[(Int, Creature)] =
+      sparkContext.makeRDD((if(fightNo == 1) Fights.fight1() else Fights.fight2() )
+      .map(c => (c.id, c)))
 
     new Thread(() => fight(creatures, socket)).start()
   }
