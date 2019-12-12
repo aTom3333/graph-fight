@@ -7,7 +7,7 @@ object Weapons {
       (30, Dice.dice(6, 3, 18)), // +30 / 3d6+18
       (25, Dice.dice(6, 3, 18)), // +25 / 3d6+18
       (20, Dice.dice(6, 3, 18)), // +20 / 3d6+18
-    ), 2, 19)
+    ), 2, 19, 2, false)
   }
 
   def BasicSword(): Attack = {
