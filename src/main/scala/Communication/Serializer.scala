@@ -11,7 +11,6 @@ class Serializer(val output: DataOutputStream) {
     val toSend: String = str
     val toSendBytes: Array[Byte] = toSend.getBytes
     val toSendLen: Int = toSendBytes.length
-    println(toSendLen)
     val toSendLenBytes: Array[Byte] = new Array[Byte](4)
     toSendLenBytes(0) = (toSendLen & 0xff).toByte
     toSendLenBytes(1) = ((toSendLen >> 8) & 0xff).toByte
