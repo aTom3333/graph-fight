@@ -21,7 +21,8 @@ object Creatures {
       new ChooseAction(Array(
         new FlyingTowardEnemy(45, 1.8),
         new OptionalAction(new FlyingAway(45, 5), 10)
-      ))
+      )),
+      new NoOverlap()
     ),
       isBoss)
   }
@@ -47,7 +48,8 @@ object Creatures {
       new ChooseAction(Array(
         new FlyingTowardEnemy(27, 1.6),
         new OptionalAction(new FlyingAway(27, 5), 10)
-      ))
+      )),
+      new NoOverlap()
     ), isBoss)
   }
 
@@ -66,12 +68,14 @@ object Creatures {
         (7, Dice.dice(6, 2,7)),
       ), 1.6, 19, 2, false),
       new FlyingTowardEnemy(18, 1.4),
-      new OptionalAction(new FlyingAway(18, 5), 10)
+      new OptionalAction(new FlyingAway(18, 5), 10),
+      new Heal(200, 65, 0.1)
     ), Array(
       new ChooseAction(Array(
         new FlyingTowardEnemy(18, 1.4),
-        new OptionalAction(new FlyingAway(18, 5), 10)
-      ))
+        new OptionalAction(new FlyingAway(18, 5, 0.1), 10)
+      )),
+      new NoOverlap()
     ),
       isBoss)
   }
@@ -91,12 +95,14 @@ object Creatures {
         (16, Dice.dice(8, 1,14)),
       ), 1.6, 20, 3, false),
       new FlyingTowardEnemy(30, 1.4),
-      new OptionalAction(new FlyingAway(30, 5), 10)
+      new OptionalAction(new FlyingAway(30, 5), 10),
+      new Heal(200, 60, 0.1)
     ), Array(
       new ChooseAction(Array(
         new FlyingTowardEnemy(30, 1.4),
-        new OptionalAction(new FlyingAway(30, 5), 10)
-      ))
+        new OptionalAction(new FlyingAway(30, 5, 0.1), 10)
+      )),
+      new NoOverlap()
     ),
       isBoss)
   }
@@ -120,7 +126,8 @@ object Creatures {
       new ChooseAction(Array(
         new WalkingTowardEnemy(12, 1.4),
         new OptionalAction(new WalkingAway(12, 5), 10)
-      ))
+      )),
+      new NoOverlap()
     ),
       isBoss)
   }
@@ -155,7 +162,8 @@ object Creatures {
       new ChooseAction(Array(
         new OptionalAction(new WalkingAway(6, 5), 10),
         new WalkingTowardEnemy(6, 1.4)
-      ))
+      )),
+      new NoOverlap()
     ),
       isBoss)
   }
@@ -185,7 +193,8 @@ object Creatures {
       new ChooseAction(Array(
         new OptionalAction(new WalkingAway(12, 5), 10),
         new WalkingTowardEnemy(12, 1.4)
-      ))
+      )),
+      new NoOverlap()
     ),
       isBoss)
   }
@@ -213,7 +222,8 @@ object Creatures {
       new ChooseAction(Array(
         new OptionalAction(new WalkingAway(9, 5), 10),
         new WalkingTowardEnemy(9, 1.8)
-      ))
+      )),
+      new NoOverlap()
     ),
       isBoss)
   }
@@ -247,7 +257,8 @@ object Creatures {
       new ChooseAction(Array(
         new FlyingTowardEnemy(75, 2),
         new OptionalAction(new FlyingAway(75, 5), 10)
-      ))
+      )),
+      new NoOverlap()
     ),
       isBoss)
   }
@@ -280,7 +291,8 @@ object Creatures {
       new ChooseAction(Array(
         new FlyingTowardEnemy(60, 1.9),
         new OptionalAction(new FlyingAway(60, 5), 10)
-      ))
+      )),
+      new NoOverlap()
     ),
       isBoss)
   }
@@ -310,7 +322,8 @@ object Creatures {
       new ChooseAction(Array(
         new WalkingTowardEnemy(15, 1.4),
         new OptionalAction(new WalkingAway(15, 5), 10)
-      ))
+      )),
+      new NoOverlap()
     ),
       isBoss)
   }
